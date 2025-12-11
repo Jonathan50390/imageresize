@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>imageresize</name>
+    <displayName><![CDATA[Image Resize]]></displayName>
+    <version><![CDATA[5.2.2]]></version>
+    <description><![CDATA[Redimensionne automatiquement les images selon les param&egrave;tres du th&egrave;me actif]]></description>
+    <author><![CDATA[Jonathan Guillerm]]></author>
+    <tab><![CDATA[administration]]></tab>
+    <confirmUninstall><![CDATA[&Ecirc;tes-vous s&ucirc;r de vouloir d&eacute;sinstaller ce module ?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+    <limited_countries></limited_countries>
+</module>

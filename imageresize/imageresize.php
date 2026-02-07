@@ -7,9 +7,9 @@ require_once __DIR__ . '/src/Helper/FormHelper.php';
 
 class ImageResize extends Module
 {
+    public $imageProcessorService;
+    public $entityImageService;
     private $formHelper;
-    private $entityImageService;
-    private $imageProcessorService;
 
     public function __construct()
     {
@@ -56,10 +56,10 @@ class ImageResize extends Module
         $entity = Tools::getValue('image_entity', 'products');
         try {
             $count = $this->entityImageService->regenerateImagesByEntity($entity);
-            return $this->displayConfirmation(sprintf($this->l('%d image(s) traitée(s)'), $count));
+            return $this->displayConfirmation(sprintf($this->l('%d image(s) traitée(s) avec succès'), $count));
         } catch (Exception $e) {
             PrestaShopLogger::addLog('ImageResize Error: ' . $e->getMessage(), 3);
-            return $this->displayError($e->getMessage());
+            return $this->displayError($this->l('Erreur : ') . $e->getMessage());
         }
     }
 
@@ -75,6 +75,12 @@ class ImageResize extends Module
     public function hookActionObjectCategoryUpdateAfter($params) {
         if (isset($params['object']) && $params['object'] instanceof Category && $params['object']->id_image) {
             $this->imageProcessorService->processCategoryImage($params['object']->id, ImageType::getImagesTypes('categories'));
+        }
+    }
+
+    public function hookActionObjectManufacturerUpdateAfter($params) {
+        if (isset($params['object']) && $params['object'] instanceof Manufacturer) {
+            $this->imageProcessorService->processManufacturerImage($params['object']->id, ImageType::getImagesTypes('manufacturers'));
         }
     }
 }

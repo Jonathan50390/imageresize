@@ -15,7 +15,7 @@ class ImageResize extends Module
     {
         $this->name = 'imageresize';
         $this->tab = 'administration';
-        $this->version = '2.4.0';
+        $this->version = '2.4.1';
         $this->author = 'Jonathan Guillerm';
         $this->bootstrap = true;
         parent::__construct();

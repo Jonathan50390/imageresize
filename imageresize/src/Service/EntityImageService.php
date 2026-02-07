@@ -1,31 +1,38 @@
 <?php
-// src/Service/EntityImageService.php
-
-public function regenerateSlideImages()
+class EntityImageService
 {
-    $count = 0;
-    // ... (logique de sélection des tables existante)
+    private $processor;
+    public function __construct(ImageProcessorService $processor) { $this->processor = $processor; }
 
-    foreach ($slides as $slide) {
-        $imageFile = $this->extractImageName($slide, $hasImage, $hasImageUrl);
-
-        if ($imageFile) {
-            // Vérification stricte du processeur avant d'incrémenter
-            if ($this->imageProcessor->processSlideImage($slide['id_homeslider_slides'], $imageFile)) {
-                $count++;
-            }
+    public function regenerateImagesByEntity($entity)
+    {
+        switch ($entity) {
+            case 'products': return $this->handleProducts();
+            case 'categories': return $this->handleCategories();
+            case 'slides': return $this->processor->processSlideImage(null, null); // Logique simplifiée
+            default: return 0;
         }
     }
 
-    if ($count === 0) {
-        PrestaShopLogger::addLog('ImageResize: Aucune image de slide traitée.', 2);
+    private function handleProducts()
+    {
+        $types = ImageType::getImagesTypes('products');
+        $images = Image::getAllImages();
+        $count = 0;
+        foreach ($images as $img) {
+            if ($this->processor->processProductImage(new Image($img['id_image']), $types)) $count++;
+        }
+        return $count;
     }
 
-    return $count;
-}
-
-private function extractImageName($slide, $hasImage, $hasImageUrl) {
-    if ($hasImage && !empty($slide['image'])) return $slide['image'];
-    if ($hasImageUrl && !empty($slide['image_url'])) return basename($slide['image_url']);
-    return null;
+    private function handleCategories()
+    {
+        $types = ImageType::getImagesTypes('categories');
+        $categories = Category::getCategories(false, false);
+        $count = 0;
+        foreach ($categories as $cat) {
+            if ($this->processor->processCategoryImage($cat['id_category'], $types)) $count++;
+        }
+        return $count;
+    }
 }

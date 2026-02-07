@@ -61,16 +61,26 @@ class ImageProcessorService
 
     public function processSlideImage($id, $imageFile)
     {
-        $paths = [_PS_ROOT_DIR_ . '/modules/ps_imageslider/images/', _PS_ROOT_DIR_ . '/img/cms/'];
-        foreach ($paths as $path) {
-            if (file_exists($path . $imageFile)) {
-                $types = [['width' => 1110, 'height' => 340, 'name' => 'homeslider']];
-                foreach ($types as $t) {
-                    $this->resizeImage($path . $imageFile, $path . 're-' . $imageFile, $t['width'], $t['height']);
-                }
-                return true;
-            }
+        $moduleDir = _PS_ROOT_DIR_ . '/modules/ps_imageslider/images/';
+        $sourceFile = $moduleDir . $imageFile;
+
+        if (!file_exists($sourceFile)) {
+            return false;
         }
-        return false;
+
+        $imageTypes = [
+            ['width' => 1110, 'height' => 340, 'name' => 'homeslider'],
+            ['width' => 768, 'height' => 235, 'name' => 'homeslider_mobile']
+        ];
+
+        $filename = pathinfo($imageFile, PATHINFO_FILENAME);
+        $extension = pathinfo($imageFile, PATHINFO_EXTENSION);
+
+        foreach ($imageTypes as $type) {
+            $destFile = $moduleDir . $filename . '-' . $type['name'] . '.' . $extension;
+            $this->resizeImage($sourceFile, $destFile, $type['width'], $type['height'], $extension);
+        }
+
+        return true;
     }
 }

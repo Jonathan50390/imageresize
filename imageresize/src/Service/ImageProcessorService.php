@@ -1,43 +1,45 @@
 <?php
-// src/Service/ImageProcessorService.php
-
 class ImageProcessorService
 {
-    private const SUPPORTED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    private const EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-    public function resizeImage($sourceFile, $destFile, $width, $height, $format = 'jpg')
+    public function resizeImage($source, $dest, $width, $height, $format = 'jpg')
     {
-        // Augmentation de la mémoire pour gérer les grandes images sources
-        @ini_set('memory_limit', '512M');
-
-        // Utilisation du paramètre de qualité PrestaShop si disponible
-        return ImageManager::resize(
-            $sourceFile,
-            $destFile,
-            (int)$width,
-            (int)$height,
-            $format,
-            true // Force le maintien du ratio d'aspect
-        );
+        @ini_set('memory_limit', '512M'); // Sécurité pour les grandes images
+        return ImageManager::resize($source, $dest, (int)$width, (int)$height, $format, true);
     }
 
-    public function processProductImage(Image $image, array $imageTypes)
+    public function findSourceFile($path, $filename)
     {
-        $imageDir = defined('_PS_PROD_IMG_DIR_') ? _PS_PROD_IMG_DIR_ : _PS_ROOT_DIR_ . '/img/p/';
-        $sourceFile = $this->findSourceFile($imageDir . $image->getImgFolder(), $image->id);
+        foreach (self::EXTENSIONS as $ext) {
+            if (file_exists($path . $filename . '.' . $ext)) return $path . $filename . '.' . $ext;
+        }
+        return null;
+    }
 
-        if (!$sourceFile) return false;
+    public function processProductImage(Image $image, array $types)
+    {
+        $dir = _PS_PROD_IMG_DIR_ . $image->getImgFolder();
+        $source = $this->findSourceFile($dir, $image->id);
+        if (!$source) return false;
 
-        foreach ($imageTypes as $imageType) {
-            // Nettoyage du nom du type d'image pour le nom de fichier
-            $typeName = str_replace([' ', '/'], '-', stripslashes($imageType['name']));
-            $destFile = $imageDir . $image->getImgFolder() . $image->id . '-' . $typeName . '.jpg';
-
-            if (!$this->resizeImage($sourceFile, $destFile, $imageType['width'], $imageType['height'])) {
-                PrestaShopLogger::addLog("ImageResize: Échec ID " . $image->id, 3);
-            }
+        foreach ($types as $type) {
+            $dest = $dir . $image->id . '-' . stripslashes($type['name']) . '.jpg';
+            $this->resizeImage($source, $dest, $type['width'], $type['height']);
         }
         return true;
     }
-    // ... (appliquer des nettoyages similaires aux autres méthodes processX)
+
+    public function processCategoryImage($id, array $types)
+    {
+        $dir = _PS_CAT_IMG_DIR_;
+        $source = $this->findSourceFile($dir, $id);
+        if (!$source) return false;
+
+        foreach ($types as $type) {
+            $dest = $dir . $id . '-' . stripslashes($type['name']) . '.jpg';
+            $this->resizeImage($source, $dest, $type['width'], $type['height']);
+        }
+        return true;
+    }
 }

@@ -57,10 +57,14 @@ class EntityImageService
     private function handleSlides()
     {
         $count = 0;
-        $slides = Db::getInstance()->executeS('SELECT image FROM ' . _DB_PREFIX_ . 'homeslider_slides_lang');
-        if ($slides) {
+        // Vérification de l'existence de la table avant requête
+        $table = _DB_PREFIX_ . 'homeslider_slides_lang';
+        $exists = Db::getInstance()->executeS("SHOW TABLES LIKE '$table'");
+        
+        if ($exists) {
+            $slides = Db::getInstance()->executeS("SELECT image FROM $table WHERE image IS NOT NULL AND image <> ''");
             foreach ($slides as $s) {
-                if (!empty($s['image']) && $this->processor->processSlideImage(null, $s['image'])) $count++;
+                if ($this->processor->processSlideImage(null, $s['image'])) $count++;
             }
         }
         return $count;
